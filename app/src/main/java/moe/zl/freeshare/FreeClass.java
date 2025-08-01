@@ -41,6 +41,14 @@ public class FreeClass {
     XposedHelpers.callMethod(mContext, "sendBroadcast", intent);
   }
 
+  public static void startFreeformFromRecents(Object task, Object Iamw, Rect taskBounds) {
+    XposedHelpers.callMethod(
+        Iamw,
+        "startActivityFromRecents",
+        XposedHelpers.getObjectField(task, "key"),
+        getFreeformOpt(taskBounds));
+  }
+
   public static ActivityOptions getFreeformOpt(Rect r) {
     ActivityOptions opt = ActivityOptions.makeBasic();
     XposedHelpers.callMethod(opt, "setLaunchWindowingMode", 5);

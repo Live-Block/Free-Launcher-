@@ -22,6 +22,7 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.cardview.widget.CardView;
+import com.crossbowffs.remotepreferences.RemotePreferences;
 import com.google.android.material.card.MaterialCardView;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -38,6 +39,8 @@ public class MainHook implements IXposedHookLoadPackage {
 
   private String TAG = "Free Launcher";
   private MaterialCardView mCard;
+  private float mFreeValue;
+  private int mode;
 
   @Override
   public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
@@ -66,7 +69,7 @@ public class MainHook implements IXposedHookLoadPackage {
               FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(400, 400);
               layoutParams.gravity = Gravity.TOP;
               XposedHelpers.callMethod(param.thisObject, "addView", mCard, layoutParams);
-              Toast.makeText(oriContext,TAG + "my Card" + mCard.toString(),1);
+              Toast.makeText(oriContext, TAG + "my Card" + mCard.toString(), 1);
             }
           });
       XposedHelpers.findAndHookMethod(
@@ -78,11 +81,17 @@ public class MainHook implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
               float progress = (float) param.args[0];
+              Context mContext =
+                  (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+              mFreeValue =
+                  new RemotePreferences(mContext, "moe.zl.freeshare.preferences", "main_prefs")
+                      .getFloat("freeValue", 3f);
+
               Object mRecentsView = XposedHelpers.getObjectField(param.thisObject, "mRecentsView");
-              if (progress > 3) {
+              if (progress > mFreeValue) {
                 if (mRecentsView != null) {
-                    
-                    XposedHelpers.callMethod(param.thisObject,"performHapticFeedback");
+
+                  XposedHelpers.callMethod(param.thisObject, "performHapticFeedback");
                   int[] position = new int[2];
                   Object mTaskView = XposedHelpers.callMethod(mRecentsView, "getRunningTaskView");
                   Object mTaskContainer =
@@ -124,9 +133,15 @@ public class MainHook implements IXposedHookLoadPackage {
                       XposedHelpers.getObjectField(
                           XposedHelpers.getObjectField(param.thisObject, "mCurrentShift"), "value");
               String logMessage = "end gesture: " + progress;
-              XposedBridge.log(TAG + ": " + logMessage);
+              XposedBridge.log(TAG + ": " + logMessage + " with min " + mFreeValue);
               Object mRecentsView = XposedHelpers.getObjectField(param.thisObject, "mRecentsView");
-              if (progress > 3) {
+              Context mContext =
+                  (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+              mFreeValue =
+                  new RemotePreferences(mContext, "moe.zl.freeshare.preferences", "main_prefs")
+                      .getFloat("freeValue", 3f);
+
+              if (progress > mFreeValue) {
                 if (mRecentsView != null) {
                   int[] position = new int[2];
                   Object HOME_TARGET =
@@ -138,11 +153,9 @@ public class MainHook implements IXposedHookLoadPackage {
                   Object mTaskContainer =
                       XposedHelpers.callMethod(
                           XposedHelpers.callMethod(mTaskView, "getTaskContainers"), "get", 0);
-                  // XposedHelpers.callMethod(mTaskContainer, "setOverlayEnabled", true);
                   Object mSnapshotView =
                       XposedHelpers.callMethod(mTaskContainer, "getSnapshotView");
-                  // XposedHelpers.callMethod(mSnapshotView, "setBackgroundColor",
-                  // 0xff1f1e33);
+
                   XposedHelpers.callMethod(mSnapshotView, "getLocationOnScreen", position);
                   int width =
                       (int)
@@ -161,12 +174,20 @@ public class MainHook implements IXposedHookLoadPackage {
                       "setEndTarget",
                       HOME_TARGET);
 
-
                   Object task = XposedHelpers.getObjectField(mTaskContainer, "task");
-                  Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject,"mContext");
-                                int mode = 1;
-                                FreeClass.startFreeformByIntent(mContext,task,mode);
-                  
+                  Object Iamw =
+                      XposedHelpers.newInstance(
+                          XposedHelpers.findClass(
+                              "com.android.systemui.shared.system.ActivityManagerWrapper",
+                              lpparam.classLoader));
+                  mode =
+                      new RemotePreferences(mContext, "moe.zl.freeshare.preferences", "main_prefs")
+                          .getInt("freeMode", 1);
+                  if (mode == FreeClass.AOSP_ORIGIN) {
+                    FreeClass.startFreeformFromRecents(task, Iamw, taskBounds);
+                  } else {
+                    FreeClass.startFreeformByIntent(mContext, task, mode);
+                  }
                 }
               }
             }
@@ -199,6 +220,4 @@ public class MainHook implements IXposedHookLoadPackage {
 
     return opt;
   }
-
-    
 }

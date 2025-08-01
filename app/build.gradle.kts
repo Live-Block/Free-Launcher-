@@ -21,8 +21,8 @@ android {
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildTypes {
@@ -41,8 +41,10 @@ android {
 
 dependencies {
 
-compileOnly("de.robv.android.xposed:api:82")
+    compileOnly("de.robv.android.xposed:api:82")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.material:material:1.14.0-alpha03")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation ("com.crossbowffs.remotepreferences:remotepreferences:0.8")
+    
 }

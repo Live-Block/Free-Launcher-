@@ -1,6 +1,36 @@
 {
   "allFiles": [
     {
+      "file": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/java/moe/zl/freeshare/Pref.java",
+      "selection": {
+        "end": {
+          "column": 75,
+          "index": 1774,
+          "line": 45
+        },
+        "start": {
+          "column": 75,
+          "index": 1774,
+          "line": 45
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/res/layout/layout_pref.xml",
+      "selection": {
+        "end": {
+          "column": 34,
+          "index": 3559,
+          "line": 82
+        },
+        "start": {
+          "column": 34,
+          "index": 3559,
+          "line": 82
+        }
+      }
+    },
+    {
       "file": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/java/moe/zl/freeshare/FreeClass.java",
       "selection": {
         "end": {
@@ -19,17 +49,17 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/java/moe/zl/freeshare/MainHook.java",
       "selection": {
         "end": {
-          "column": 39,
-          "index": 8331,
-          "line": 167
+          "column": 0,
+          "index": 0,
+          "line": 0
         },
         "start": {
-          "column": 39,
-          "index": 8331,
-          "line": 167
+          "column": 0,
+          "index": 0,
+          "line": 0
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/java/moe/zl/freeshare/FreeClass.java"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/FreeLauncher/app/src/main/java/moe/zl/freeshare/Pref.java"
 }

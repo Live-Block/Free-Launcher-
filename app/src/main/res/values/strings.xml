@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Free Launcher</string>    
     <string name="description">Using freefrom to launcher share apps</string>
+    <string name="t1">You could set the progress where the window put off beli</string>
 </resources>
