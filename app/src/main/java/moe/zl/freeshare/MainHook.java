@@ -1,8 +1,11 @@
 package moe.zl.freeshare;
 
+import android.app.AndroidAppHelper;
+import android.content.res.XModuleResources;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.PointF;
@@ -10,11 +13,19 @@ import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.UserHandle;
+import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.View;
 import android.graphics.Rect;
 import android.view.WindowInsets;
+import android.widget.FrameLayout;
+import android.widget.Toast;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.cardview.widget.CardView;
+import com.google.android.material.card.MaterialCardView;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -26,12 +37,38 @@ import java.util.List;
 public class MainHook implements IXposedHookLoadPackage {
 
   private String TAG = "Free Launcher";
+  private MaterialCardView mCard;
 
   @Override
   public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
 
+    XModuleResources modRes = XModuleResources.createInstance(lpparam.appInfo.sourceDir, null);
     XposedBridge.log(TAG + ": Found target package: " + lpparam.packageName);
     try {
+      XposedHelpers.findAndHookConstructor(
+          "com.android.quickstep.views.RecentsView", // 目标类的完整名称
+          lpparam.classLoader,
+          Context.class,
+          AttributeSet.class,
+          int.class,
+          new XC_MethodHook() { // Hook 逻辑回调
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+              Context mContext = (Context) AndroidAppHelper.currentApplication();
+              Context oriContext = (Context) param.args[0];
+              XposedBridge.log(TAG + "my context " + mContext.toString());
+              // Context themedContext = new ContextThemeWrapper(oriContext, themeId);
+              CardView mCard = new CardView(mContext);
+              mCard.setId(View.generateViewId());
+              mCard.setCardBackgroundColor(0xff1f1e33);
+              mCard.setContextClickable(true);
+
+              FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(400, 400);
+              layoutParams.gravity = Gravity.TOP;
+              XposedHelpers.callMethod(param.thisObject, "addView", mCard, layoutParams);
+              Toast.makeText(oriContext,TAG + "my Card" + mCard.toString(),1);
+            }
+          });
       XposedHelpers.findAndHookMethod(
           "com.android.quickstep.AbsSwipeUpHandler", // 目标类的完整名称
           lpparam.classLoader, // 目标应用的类加载器
@@ -42,8 +79,10 @@ public class MainHook implements IXposedHookLoadPackage {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
               float progress = (float) param.args[0];
               Object mRecentsView = XposedHelpers.getObjectField(param.thisObject, "mRecentsView");
-              if (progress > 2) {
+              if (progress > 3) {
                 if (mRecentsView != null) {
+                    
+                    XposedHelpers.callMethod(param.thisObject,"performHapticFeedback");
                   int[] position = new int[2];
                   Object mTaskView = XposedHelpers.callMethod(mRecentsView, "getRunningTaskView");
                   Object mTaskContainer =
@@ -99,7 +138,7 @@ public class MainHook implements IXposedHookLoadPackage {
                   Object mTaskContainer =
                       XposedHelpers.callMethod(
                           XposedHelpers.callMethod(mTaskView, "getTaskContainers"), "get", 0);
-                  XposedHelpers.callMethod(mTaskContainer, "setOverlayEnabled", true);
+                  // XposedHelpers.callMethod(mTaskContainer, "setOverlayEnabled", true);
                   Object mSnapshotView =
                       XposedHelpers.callMethod(mTaskContainer, "getSnapshotView");
                   // XposedHelpers.callMethod(mSnapshotView, "setBackgroundColor",
@@ -115,56 +154,19 @@ public class MainHook implements IXposedHookLoadPackage {
                               * (float) XposedHelpers.callMethod(mTaskView, "getScaleY"));
                   Rect taskBounds =
                       new Rect(position[0], position[1], position[0] + width, position[1] + height);
-                  // XposedBridge.log(TAG + ": " + taskBounds.toString());
+                  XposedBridge.log(TAG + "Task Bound: " + taskBounds.toString());
 
                   XposedHelpers.callMethod(
                       XposedHelpers.getObjectField(param.thisObject, "mGestureState"),
                       "setEndTarget",
                       HOME_TARGET);
 
-                  /*XposedHelpers.callMethod(
-                  XposedHelpers.newInstance(
-                      XposedHelpers.findClass(
-                          "com.android.systemui.shared.system.ActivityManagerWrapper",
-                          lpparam.classLoader)),
-                  "startActivityFromRecents",
-                  XposedHelpers.getObjectField(
-                      XposedHelpers.getObjectField(mTaskContainer, "task"), "key"),
-                  getOpt(taskBounds));*/
-                  String FREEFORM_PACKAGE = "com.libremobileos.freeform";
-                  String FREEFORM_INTENT = "com.libremobileos.freeform.START_FREEFORM";
 
                   Object task = XposedHelpers.getObjectField(mTaskContainer, "task");
-                  final Intent intent = new Intent(FREEFORM_INTENT).setPackage(FREEFORM_PACKAGE);
-                  XposedHelpers.callMethod(
-                      intent,
-                      "putExtra",
-                      "packageName",
-                      XposedHelpers.callMethod(
-                          XposedHelpers.getObjectField(task, "key"), "getPackageName"));
-                  XposedHelpers.callMethod(
-                      intent,
-                      "putExtra",
-                      "activityName",
-                      XposedHelpers.callMethod(
-                          XposedHelpers.callMethod(task, "getTopComponent"), "getClassName"));
-                  XposedHelpers.callMethod(
-                      intent,
-                      "putExtra",
-                      "userId",
-                      XposedHelpers.getObjectField(
-                          XposedHelpers.getObjectField(task, "key"), "userId"));
-                  XposedHelpers.callMethod(
-                      intent,
-                      "putExtra",
-                      "taskId",
-                      XposedHelpers.getObjectField(
-                          XposedHelpers.getObjectField(task, "key"), "id"));
-
-                  XposedHelpers.callMethod(
-                      XposedHelpers.getObjectField(param.thisObject, "mContext"),
-                      "sendBroadcast",
-                      intent);
+                  Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject,"mContext");
+                                int mode = 1;
+                                FreeClass.startFreeformByIntent(mContext,task,mode);
+                  
                 }
               }
             }
@@ -197,4 +199,6 @@ public class MainHook implements IXposedHookLoadPackage {
 
     return opt;
   }
+
+    
 }

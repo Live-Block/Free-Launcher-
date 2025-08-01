@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "moe.zl.freelauncher"
-    compileSdk = 33
+    compileSdk = 36
     
     defaultConfig {
         applicationId = "moe.zl.freelauncher"
