@@ -20,7 +20,7 @@ public class Pref extends AppCompatActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    //EdgeToEdgeUtils.applyEdgeToEdge(this.getWindow(), true);
+    // EdgeToEdgeUtils.applyEdgeToEdge(this.getWindow(), true);
     setContentView(R.layout.layout_pref);
 
     SharedPreferences sp =
@@ -29,7 +29,7 @@ public class Pref extends AppCompatActivity {
     TextView t1 = findViewById(R.id.t1);
     LinearLayout l = findViewById(R.id.l);
     MaterialButtonToggleGroup mbg = findViewById(R.id.modeButtonGroup);
-    
+
     s.addOnChangeListener(
         (mSlider, value, fromUser) -> {
           SharedPreferences.Editor ed = sp.edit();
@@ -37,16 +37,15 @@ public class Pref extends AppCompatActivity {
           ed.apply();
         });
     s.setValue(sp.getFloat("freeValue", 2f));
-    
+
     mbg.addOnButtonCheckedListener(
-        (mGroup, id, isChecked)->{
+        (mGroup, id, isChecked) -> {
+          if (isChecked) {
             MaterialButton mb = mGroup.findViewById(id);
             SharedPreferences.Editor ed = sp.edit();
-            
-             ed.putInt("freeMode", Integer.valueOf(mb.getTag().toString()));
-          ed.apply();
-        }
-    );
-    
+            ed.putInt("freeMode", Integer.valueOf(mb.getTag().toString()));
+            ed.apply();
+          }
+        });
   }
 }

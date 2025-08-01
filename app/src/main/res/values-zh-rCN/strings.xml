@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Free Launcher</string>    
+    <string name="description">在启动器上滑手势中快速使用自由形式启动</string>
+    <string name="t1">你可以在这里设置手势上滑高度的临界值，在不同的ROM请更改实现方式</string>
+</resources>
